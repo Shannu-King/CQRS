@@ -1,0 +1,4 @@
+{
+  "commandServiceUrl": "http://localhost:8080",
+  "queryServiceUrl": "http://localhost:8081"
+}

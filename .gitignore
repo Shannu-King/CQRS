@@ -1,0 +1,25 @@
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Env files
+.env
+
+# Logs
+*.log
+
+# Build artifacts
+bin/
+*.exe
+*.out
+
+# Node
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+
+# Test/runtime outputs
+output/

@@ -1,0 +1,80 @@
+services:
+  db:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: default_db
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./db/init-multiple-dbs.sh:/docker-entrypoint-initdb.d/00-init-multiple-dbs.sh
+      - ./db/write_db.sql:/docker-entrypoint-initdb.d/01-write_db.sql
+      - ./db/read_db.sql:/docker-entrypoint-initdb.d/02-read_db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d write_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  broker:
+    image: rabbitmq:3-management
+    ports:
+      - '5672:5672' # AMQP port
+      - '15672:15672' # Management UI
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  command-service:
+    build: ./command-service
+    ports:
+      - '8080:8080'
+    depends_on:
+      db: { condition: service_healthy }
+      broker: { condition: service_healthy }
+    environment:
+      DATABASE_URL: postgresql://user:password@db:5432/write_db?sslmode=disable
+      BROKER_URL: amqp://guest:guest@broker:5672/
+      PORT: 8080
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  consumer-service:
+    build: ./consumer-service
+    depends_on:
+      db: { condition: service_healthy }
+      broker: { condition: service_healthy }
+    environment:
+      BROKER_URL: amqp://guest:guest@broker:5672/
+      READ_DATABASE_URL: postgresql://user:password@db:5432/read_db?sslmode=disable
+      PORT: 8082
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8082/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  query-service:
+    build: ./query-service
+    ports:
+      - '8081:8081'
+    depends_on:
+      db: { condition: service_healthy }
+      broker: { condition: service_healthy }
+    environment:
+      READ_DATABASE_URL: postgresql://user:password@db:5432/read_db?sslmode=disable
+      PORT: 8081
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8081/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
