@@ -81,6 +81,33 @@ Expected summary:
 - `Extra Negative Tests: 3/3`
 - `Overall: PASS`
 
+## Demo
+
+### 1) Create a product
+
+```powershell
+Invoke-RestMethod -Method Post -Uri 'http://localhost:8080/api/products' \
+	-ContentType 'application/json' \
+	-Body '{"name":"Demo Phone","category":"electronics","price":499,"stock":20}'
+```
+
+### 2) Create an order
+
+```powershell
+Invoke-RestMethod -Method Post -Uri 'http://localhost:8080/api/orders' \
+	-ContentType 'application/json' \
+	-Body '{"customerId":101,"items":[{"productId":1,"quantity":2,"price":499}]}'
+```
+
+### 3) Read analytics (after a few seconds)
+
+```powershell
+Invoke-RestMethod -Method Get -Uri 'http://localhost:8081/api/analytics/products/1/sales'
+Invoke-RestMethod -Method Get -Uri 'http://localhost:8081/api/analytics/categories/electronics/revenue'
+Invoke-RestMethod -Method Get -Uri 'http://localhost:8081/api/analytics/customers/101/lifetime-value'
+Invoke-RestMethod -Method Get -Uri 'http://localhost:8081/api/analytics/sync-status'
+```
+
 Services become available at:
 
 - Command Service: `http://localhost:8080`
