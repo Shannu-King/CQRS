@@ -2,6 +2,14 @@
 
 This project implements an e-commerce analytics backend using **CQRS**, **transactional outbox**, and **RabbitMQ**.
 
+## Highlights
+
+- CQRS separation with dedicated write/read models.
+- Transactional outbox to prevent dual-write inconsistency.
+- Event-driven materialized views for fast analytics queries.
+- Idempotent consumers using `processed_events(event_id)`.
+- Full Docker Compose setup with health checks for all services.
+
 ## Architecture
 
 - **command-service** (`:8080`): accepts write commands (`POST /api/products`, `POST /api/orders`), writes to write model, appends outbox events atomically.
@@ -58,6 +66,20 @@ This project implements an e-commerce analytics backend using **CQRS**, **transa
 ```bash
 docker-compose up --build
 ```
+
+## Quick Verification
+
+Run full mandatory + negative checks in one command:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\verify-all.ps1
+```
+
+Expected summary:
+
+- `Core Score: 16/16`
+- `Extra Negative Tests: 3/3`
+- `Overall: PASS`
 
 Services become available at:
 
